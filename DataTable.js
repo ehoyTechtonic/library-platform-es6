@@ -16,18 +16,22 @@ DataTable.prototype.init = function()
 DataTable.prototype._bindEvents = function ()
 {
   //TODO: add native events here for search and any others needed
+  this.$searchForm = $("#search-form");
+  this.$showBooksButton = $("#show-books-button");
+  this.$booksTable = $("#books-table");
+  this.$editBookButton = $("#edit-book-button");
+
+  this.$searchForm.on('submit',$.proxy(this._handleSearch,this));
+  this.$showBooksButton.on('click',$.proxy(this._handleShowAllBooks,this));
+  this.$booksTable.on('click','.edit-book', $.proxy(this._handleEditBook,this));
+  this.$editBookButton.on('click',$.proxy(this._handleEditBookData,this));
 };
 
 DataTable.prototype._bindCustomListeners = function ()
 {
-
-  // $('#search-form').on('submit', $.proxy(this._handleSearch, this, 'objUpdate', this.search()));
-  $('#search-form').on('submit',$.proxy(this._handleSearch,this));
   $(document).on('objUpdate', $.proxy(this._updateTable, this));
   //This is a global object that can be accessed as window.bookShelf. This will hold the state of your bookShelf.
 };
-
-
 
 DataTable.prototype._handleSearch = function (e)
 {
@@ -41,12 +45,14 @@ DataTable.prototype._handleSearch = function (e)
   });
   var searchResults = this.search(myObj);
   this.handleEventTrigger('objUpdate', searchResults);
-
   return false;
 };
 
-DataTable.prototype._updateTable = function (e) {
+DataTable.prototype._handleShowAllBooks = function () {
+  this.handleEventTrigger('objUpdate', window.bookShelf);
+}
 
+DataTable.prototype._updateTable = function (e) {
   this._makeTable(e.detail);
 };
 
@@ -85,6 +91,8 @@ DataTable.prototype._createRow = function (book)
       $(td).html(img);
     } else if(key === 'rating'){
       $(td).html(this._stars(book[key]));
+    } else if(key === 'editBook') {
+      $(td).html('<button id="'+book.title+'" class="edit-book btn btn-default pull-left" type="button" data-toggle="modal" data-target="#edit-book-modal">Edit Book</button>');
     } else {
       $(td).html(key === 'synopsis' ? book[key].substring(0,85) + "..." : book[key]);
     }
@@ -106,6 +114,27 @@ DataTable.prototype._stars = function (rating)
   }
   return $div;
 };
+
+DataTable.prototype._handleEditBook = function (event) {
+  var updatedArray;
+  $.each(window.bookShelf, function(index, value) {
+    if (window.bookShelf[index].title === event.target.id) {
+      $("#title-edit-input").attr("value",window.bookShelf[index].title);
+      $("#author-edit-input").attr("value",window.bookShelf[index].author);
+      $("#rating-edit-input").attr("value",window.bookShelf[index].rating);
+      $("#pages-edit-input").attr("value",window.bookShelf[index].numberOfPages);
+      $("#date-edit-input").attr("value",window.bookShelf[index].publishDate);
+      $("#synopsis-edit-input").text(window.bookShelf[index].synopsis);
+    }
+  });
+};
+
+DataTable.prototype._handleEditBookData = function (e) {
+  updatedArray = $("#edit-book").serializeArray();
+  console.log(updatedArray);
+  // editBook(updatedArray);
+  this.handleEventTrigger('objUpdate',window.bookShelf);
+}
 
 DataTable.prototype._updateStorage = function ()
 {

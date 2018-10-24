@@ -20,6 +20,7 @@ Library.prototype.addBook = function(book)
   console.log("added " + book.title + " to book shelf");
   window.bookShelf.push(book);
   this.setStorage();
+  console.log(book);
   return true;
 };
 
@@ -34,6 +35,7 @@ Library.prototype.removeBookByTitle = function(title)
     }
   }
   return false;
+
 };
 
 Library.prototype.removeBookByAuthor = function(author)
@@ -85,6 +87,7 @@ Library.prototype.addBooks = function(books)
 {
   var counter = 0;
   for (var i = 0; i < books.length; i++) {
+    console.log(books[i]);
     if (this.addBook(books[i])) {
       counter++;
     }
@@ -96,7 +99,7 @@ Library.prototype.addBooks = function(books)
 Library.prototype.getAuthors = function()
 {
   if (window.bookShelf.length) {
-    return window.bookShelf.unique("title");
+    return window.bookShelf.unique("author");
   }
   return [];
 };
@@ -110,11 +113,26 @@ Library.prototype.getRandomAuthorName = function()
   }
 };
 
-Library.prototype.search = function(searchParams) //searchParams is an object
-{//remove below code and implement your own search function
-
-  //TODO: ADD YOUR OWN SEARCH FUNCTION HERE
+Library.prototype.search = function(searchParams)
+{
+  var bookArray = [];
+  function getBookArray(book) {
+    $.each(searchParams,function(index,value){
+      if (book.title.indexOf(value) > -1) {
+        bookArray.push(book);
+      }
+      if (book.author.indexOf(value) > -1) {
+        bookArray.push(book);
+      }
+    });
+  }
+  var authorArray = window.bookShelf.filter(getBookArray);
+  return bookArray.filter(this.checkDuplicates);
 };
+
+Library.prototype.checkDuplicates = function(book,index,self) {
+  return self.indexOf(book) === index;
+}
 
 Library.prototype.getStorage = function()
 {
